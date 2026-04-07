@@ -1,0 +1,141 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Renovate configuration for build-workflow pins and release image references",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "baseBranchPatterns": ["$default", "release"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update build-workflow main SHA pins across workflows and schema URLs",
+      "managerFilePatterns": [
+        "/^\\.github\\/workflows\\/.*\\.ya?ml$/",
+        "/^\\.ci\\/build\\.json$/"
+      ],
+      "matchStrings": [
+        "runlix/build-workflow/\\.github/workflows/[^@\\s]+@(?<currentDigest>[a-f0-9]{40})",
+        "ghcr\\.io/runlix/build-workflow-tools:sha-(?<currentDigest>[a-f0-9]{40})",
+        "https://raw\\.githubusercontent\\.com/runlix/build-workflow/(?<currentDigest>[a-f0-9]{40})/schema/build-config\\.schema\\.json"
+      ],
+      "currentValueTemplate": "main",
+      "depNameTemplate": "runlix/build-workflow",
+      "packageNameTemplate": "https://github.com/runlix/build-workflow",
+      "datasourceTemplate": "git-refs"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Debian builder refs in release build config and Dockerfiles",
+      "managerFilePatterns": [
+        "/^\\.ci\\/build\\.json$/",
+        "/^linux-(amd64|arm64)\\.Dockerfile$/"
+      ],
+      "matchStrings": [
+        "\"BUILDER_REF\"\\s*:\\s*\"(?<depName>docker\\.io/library/debian):(?<currentValue>[^\"@]+)@(?<currentDigest>sha256:[a-f0-9]{64})\"",
+        "ARG BUILDER_REF=\"(?<depName>docker\\.io/library/debian):(?<currentValue>[^\"@]+)@(?<currentDigest>sha256:[a-f0-9]{64})\""
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Distroless base refs in release build config and Dockerfiles",
+      "managerFilePatterns": [
+        "/^\\.ci\\/build\\.json$/",
+        "/^linux-(amd64|arm64)\\.Dockerfile$/"
+      ],
+      "matchStrings": [
+        "\"BASE_REF\"\\s*:\\s*\"(?<depName>ghcr\\.io/runlix/distroless-runtime-v2-canary):(?<currentValue>[^\"@]+)@(?<currentDigest>sha256:[a-f0-9]{64})\"",
+        "ARG BASE_REF=\"(?<depName>ghcr\\.io/runlix/distroless-runtime-v2-canary):(?<currentValue>[^\"@]+)@(?<currentDigest>sha256:[a-f0-9]{64})\""
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Seerr version from GitHub releases",
+      "managerFilePatterns": [
+        "/^\\.ci\\/build\\.json$/"
+      ],
+      "matchStrings": [
+        "\"version\"\\s*:\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "seerr-team/seerr",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v?(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Seerr package URLs from GitHub releases",
+      "managerFilePatterns": [
+        "/^\\.ci\\/build\\.json$/"
+      ],
+      "matchStrings": [
+        "\"PACKAGE_URL\"\\s*:\\s*\"https://github\\.com/(?<depName>[^/]+/[^/]+)/archive/refs/tags/v?(?<currentValue>[^\"]+)\\.tar\\.gz\""
+      ],
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v?(?<version>.*)$"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Manage build-workflow reusable workflow refs atomically via regex",
+      "matchManagers": ["github-actions"],
+      "matchPackageNames": ["runlix/build-workflow"],
+      "enabled": false
+    },
+    {
+      "description": "Group build-workflow main SHA updates",
+      "matchManagers": ["custom.regex"],
+      "matchDatasources": ["git-refs"],
+      "matchDepNames": ["runlix/build-workflow"],
+      "groupName": "Build Workflow pins",
+      "commitMessageTopic": "build-workflow pin",
+      "rebaseWhen": "behind-base-branch"
+    },
+    {
+      "description": "Group Debian builder updates",
+      "matchManagers": ["custom.regex"],
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["docker.io/library/debian"],
+      "groupName": "Debian builder",
+      "commitMessageTopic": "Debian builder image"
+    },
+    {
+      "description": "Group Distroless base updates",
+      "matchManagers": ["custom.regex"],
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/runlix/distroless-runtime-v2-canary"],
+      "groupName": "Distroless base",
+      "commitMessageTopic": "Distroless base image"
+    },
+    {
+      "description": "Group Seerr version and package URL updates with auto-merge",
+      "matchDatasources": ["github-releases"],
+      "matchPackageNames": ["seerr-team/seerr"],
+      "groupName": "Seerr release",
+      "commitMessageTopic": "Seerr version",
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
+      "description": "Auto-merge digest-only Docker ref updates",
+      "matchManagers": ["custom.regex"],
+      "matchDatasources": ["docker"],
+      "matchFileNames": ["**/.ci/build.json", "linux-*.Dockerfile"],
+      "matchUpdateTypes": ["digest"],
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    }
+  ],
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "🔄 Dependency Updates Dashboard",
+  "dependencyDashboardApproval": false,
+  "labels": ["dependencies", "docker"],
+  "timezone": "UTC",
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 1
+}
