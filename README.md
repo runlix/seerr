@@ -1,18 +1,25 @@
 # Seerr
 
-Kubernetes-native distroless Docker image for [Seerr](https://github.com/seerr-team/seerr) - a media request manager that integrates with Sonarr and Radarr.
+Kubernetes-native distroless Docker image for [Seerr](https://github.com/seerr-team/seerr), built and published through the shared CI v3 workflow stack in [`runlix/build-workflow`](https://github.com/runlix/build-workflow).
 
-## Purpose
+## Published Image
 
-Provides a minimal, secure Docker image for running Seerr in Kubernetes environments. Built on the `distroless-runtime` base image with only the dependencies required for Seerr to run.
+- Image: `ghcr.io/runlix/seerr`
+- Current stable tag example: `ghcr.io/runlix/seerr:3.1.0-stable`
+- Current debug tag example: `ghcr.io/runlix/seerr:3.1.0-debug`
 
-## Features
+The authoritative published tags, digests, and source revision are recorded in [release.json](release.json).
 
-- Distroless base (no shell, minimal attack surface)
-- Kubernetes-native permissions (no s6-overlay)
-- Read-only root filesystem support
-- Non-root execution (`20030:20030`)
-- Official Seerr runtime contract (`/app/config`, port `5055`, `/api/v1/status`)
+## Branch Layout
+
+- `main`: documentation, release metadata, and automation configuration
+- `release`: Dockerfiles, CI wrappers, smoke tests, and build inputs
+
+Normal release flow:
+1. changes land on `release`
+2. `Publish Release` builds and publishes the images
+3. the workflow opens a sync PR back to `main`
+4. `main` records the published result in `release.json`
 
 ## Usage
 
@@ -25,7 +32,7 @@ docker run -d \
   -e PORT=5055 \
   -p 5055:5055 \
   -v /path/to/config:/app/config \
-  ghcr.io/runlix/seerr:release-latest
+  ghcr.io/runlix/seerr:3.1.0-stable
 ```
 
 ### Kubernetes
@@ -39,39 +46,35 @@ spec:
   template:
     spec:
       containers:
-      - name: seerr
-        image: ghcr.io/runlix/seerr:release-latest
-        env:
-        - name: PORT
-          value: "5055"
-        ports:
-        - containerPort: 5055
-        volumeMounts:
-        - name: config
-          mountPath: /app/config
-        securityContext:
-          runAsUser: 20030
-          runAsGroup: 20030
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop: ["ALL"]
+        - name: seerr
+          image: ghcr.io/runlix/seerr:3.1.0-stable
+          env:
+            - name: PORT
+              value: "5055"
+          ports:
+            - containerPort: 5055
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+          securityContext:
+            runAsUser: 20030
+            runAsGroup: 20030
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
       volumes:
-      - name: config
-        persistentVolumeClaim:
-          claimName: seerr-config
+        - name: config
+          persistentVolumeClaim:
+            claimName: seerr-config
       securityContext:
         fsGroup: 20030
 ```
 
-## Tags
-
-See [tags.json](tags.json) for available tags.
-
 ## Environment Variables
 
 - `PORT`: HTTP listen port (default: `5055`)
-- `TZ`: Time zone database value (example: `UTC`)
-- `LOG_LEVEL`: Logging level
+- `TZ`: time zone database value
+- `LOG_LEVEL`: application log level
 
 ## Health Check
 
@@ -79,4 +82,4 @@ See [tags.json](tags.json) for available tags.
 
 ## License
 
-MIT (upstream Seerr license)
+MIT
