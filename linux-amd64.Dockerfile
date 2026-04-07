@@ -1,21 +1,10 @@
-# Builder image and tag from docker-matrix.json
-ARG BUILDER_IMAGE=docker.io/library/debian
-ARG BUILDER_TAG=bookworm-slim
-# Base image and tag from docker-matrix.json
-ARG BASE_IMAGE=ghcr.io/runlix/distroless-runtime
-ARG BASE_TAG=stable
-# Selected digests (build script will set based on target configuration)
-# Default to empty string - build script should always provide valid digests
-# If empty, FROM will fail (which is desired to enforce digest pinning)
-ARG BUILDER_DIGEST=""
-ARG BASE_DIGEST=""
-# Seerr source package URL from docker-matrix.json
-ARG PACKAGE_URL=""
+ARG BUILDER_REF="docker.io/library/debian:bookworm-slim@sha256:8af0e5095f9964007f5ebd11191dfe52dcb51bf3afa2c07f055fc5451b78ba0e"
+ARG BASE_REF="ghcr.io/runlix/distroless-runtime-v2-canary:stable@sha256:6f96f11dbb9d8f6e76672e73bbf743dbec36d2e4f6d29250151a48379a8c66dd"
+ARG PACKAGE_URL="https://github.com/seerr-team/seerr/archive/refs/tags/v3.1.0.tar.gz"
 ARG NODE_VERSION=22.22.0
 ARG COMMIT_TAG=unknown
 
-# STAGE 1 — fetch Seerr source
-FROM ${BUILDER_IMAGE}:${BUILDER_TAG}@${BUILDER_DIGEST} AS fetch
+FROM ${BUILDER_REF} AS fetch
 
 ARG PACKAGE_URL
 
@@ -32,8 +21,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
  && tar -xzf seerr.tar.gz -C /app --strip-components=1 \
  && rm seerr.tar.gz
 
-# STAGE 2 — build Seerr app
-FROM ${BUILDER_IMAGE}:${BUILDER_TAG}@${BUILDER_DIGEST} AS build
+FROM ${BUILDER_REF} AS build
 
 ARG NODE_VERSION
 ARG COMMIT_TAG
@@ -67,8 +55,7 @@ RUN pnpm build \
  && touch config/DOCKER \
  && printf '{"commitTag":"%s"}\n' "${COMMIT_TAG}" > committag.json
 
-# STAGE 3 — install production dependencies only
-FROM ${BUILDER_IMAGE}:${BUILDER_TAG}@${BUILDER_DIGEST} AS prod-deps
+FROM ${BUILDER_REF} AS prod-deps
 
 ARG NODE_VERSION
 
@@ -95,8 +82,7 @@ COPY --from=fetch /app /app
 RUN --mount=type=cache,id=pnpm-store-amd64,target=/pnpm/store \
     CI=true pnpm install --prod --frozen-lockfile
 
-# STAGE 4 — distroless final image
-FROM ${BASE_IMAGE}:${BASE_TAG}@${BASE_DIGEST}
+FROM ${BASE_REF}
 
 ARG LIB_DIR=x86_64-linux-gnu
 
