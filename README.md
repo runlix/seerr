@@ -5,8 +5,8 @@ Kubernetes-native distroless Docker image for [Seerr](https://github.com/seerr-t
 ## Published Image
 
 - Image: `ghcr.io/runlix/seerr`
-- Current stable tag example: `ghcr.io/runlix/seerr:3.1.0-stable`
-- Current debug tag example: `ghcr.io/runlix/seerr:3.1.0-debug`
+- Stable tag pattern: `ghcr.io/runlix/seerr:<version>-stable`
+- Debug tag pattern: `ghcr.io/runlix/seerr:<version>-debug`
 
 The authoritative published tags, digests, and source revision are recorded in [release.json](release.json).
 
@@ -32,7 +32,7 @@ docker run -d \
   -e PORT=5055 \
   -p 5055:5055 \
   -v /path/to/config:/app/config \
-  ghcr.io/runlix/seerr:3.1.0-stable
+  ghcr.io/runlix/seerr:<version>-stable
 ```
 
 ### Kubernetes
@@ -47,7 +47,7 @@ spec:
     spec:
       containers:
         - name: seerr
-          image: ghcr.io/runlix/seerr:3.1.0-stable
+          image: ghcr.io/runlix/seerr:<version>-stable
           env:
             - name: PORT
               value: "5055"
