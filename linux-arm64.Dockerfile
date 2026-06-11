@@ -1,4 +1,4 @@
-ARG BUILDER_REF="docker.io/library/debian:bookworm-slim@sha256:f1433d3ee18e12f45682b29d91b6356e54e40d6b47f5f8ac81e80f35cca8cfe7"
+ARG BUILDER_REF="docker.io/library/debian:bookworm-slim@sha256:1663827ae94a92b1f374b5daf5fe2bf55303e7e7c61b84ef9663e654224a5857"
 ARG BASE_REF="ghcr.io/runlix/distroless-runtime-v2-canary:stable@sha256:711543e99e87b087f1d02fff354bb945142d02c930e1a1453b1db306424a1af4"
 ARG PACKAGE_URL="https://github.com/seerr-team/seerr/archive/refs/tags/v3.1.0.tar.gz"
 ARG NODE_VERSION=22.22.0
