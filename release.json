@@ -1,13 +1,13 @@
 {
   "image": "ghcr.io/runlix/seerr",
   "version": "3.5.1",
-  "sha": "ebe063894e9610ff95a76ecd6399e37a03dec298",
-  "short_sha": "ebe0638",
-  "published_at": "2026-11-24T08:52:32Z",
+  "sha": "3c30ac88468c62b1303b1e83b35679f797c4ede0",
+  "short_sha": "3c30ac8",
+  "published_at": "2026-11-25T05:18:11Z",
   "manifests": [
     {
       "tag": "3.1.0-debug",
-      "digest": "sha256:c733091b74d6b4319e7ea74de570ab1424c03b7e89b563c8b44e0e461e300151",
+      "digest": "sha256:5074993e2e14c7bfe2b54f023e2de349215f58b0abbfed42e7f24431c2627303",
       "platforms": [
         "linux/amd64",
         "linux/arm64"
@@ -15,7 +15,7 @@
     },
     {
       "tag": "3.1.0-stable",
-      "digest": "sha256:68804d272f6014087c3eac0ee2ee258fe49e67231638f68909fde0a3056240ce",
+      "digest": "sha256:6e46f43ed5a95669d341057bccba687fe45fa45b9d912b1dc13d8fb275b32352",
       "platforms": [
         "linux/amd64",
         "linux/arm64"
